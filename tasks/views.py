@@ -9,20 +9,11 @@ from drf_yasg import openapi
 from .serializers import TaskSerializer
 
 class TaskListView(APIView):
-    @swagger_auto_schema(
-        operation_description="Retrieve the list of tasks",
-        responses={200: TaskSerializer(many=True)}
-    )
     def get(self, request):
         tasks = Task.objects.all()
         serializer = TaskSerializer(tasks, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        operation_description="Create a new task",
-        request_body=TaskSerializer,
-        responses={201: TaskSerializer, 400: "Bad Request"}
-    )
     def post(self, request):
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
@@ -30,11 +21,13 @@ class TaskListView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class TaskDetailView(APIView):
     @swagger_auto_schema(
         operation_description="Retrieve a specific task",
-        responses={200: TaskSerializer, 404: "Not Found"}
+        responses={
+            200: TaskSerializer,
+            404: "Task not found"
+        }
     )
     def get(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
@@ -44,7 +37,7 @@ class TaskDetailView(APIView):
     @swagger_auto_schema(
         operation_description="Update a specific task",
         request_body=TaskSerializer,
-        responses={200: TaskSerializer, 400: "Bad Request", 404: "Not Found"}
+        responses={200: TaskSerializer, 400: "Bad Request", 404: "Task not found"}
     )
     def put(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
@@ -56,7 +49,7 @@ class TaskDetailView(APIView):
 
     @swagger_auto_schema(
         operation_description="Delete a specific task",
-        responses={204: "No Content", 404: "Not Found"}
+        responses={204: "Task deleted", 404: "Task not found"}
     )
     def delete(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
