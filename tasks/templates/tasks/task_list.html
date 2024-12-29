@@ -14,6 +14,8 @@
                 {% else %}
                     <span>미완료</span>
                 {% endif %}
+                <a href="{% url 'update-task' task.id %}">Update</a>
+                <a href="{% url 'delete-task' task.id %}">Delete</a>
             </li>
         {% endfor %}
     </ul>

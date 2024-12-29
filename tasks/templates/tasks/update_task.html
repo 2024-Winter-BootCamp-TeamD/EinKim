@@ -8,8 +8,11 @@
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Update</button>
+        <label>
+            <input type="checkbox" name="completed" {% if task.completed %}checked{% endif %}> Completed
+        </label>
+        <button type="submit">Save Changes</button>
     </form>
-    <a href="{% url 'task-list' %}">Back to Task List</a>
+    <a href="{% url 'task-list' %}">Cancel</a>
 </body>
 </html>
