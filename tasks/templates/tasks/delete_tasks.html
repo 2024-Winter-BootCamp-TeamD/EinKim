@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Tasks</title>
+</head>
+<body>
+    <h1>Confirm Deletion</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <ul>
+            {% for task in tasks %}
+                <li>{{ task.title }}</li>
+                <input type="hidden" name="task_ids" value="{{ task.id }}">
+            {% endfor %}
+        </ul>
+        <button type="submit" formaction="{% url 'confirm-delete' %}">Confirm Delete</button>
+        <a href="{% url 'task-list' %}">Cancel</a>
+    </form>
+</body>
+</html>

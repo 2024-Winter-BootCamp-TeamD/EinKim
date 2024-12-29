@@ -5,20 +5,35 @@
 </head>
 <body>
     <h1>ToDo List</h1>
-    <ul>
-        {% for task in tasks %}
-            <li>
-                {{ task.title }} -
-                {% if task.completed %}
-                    <span>완료</span>
-                {% else %}
-                    <span>미완료</span>
-                {% endif %}
-                <a href="{% url 'update-task' task.id %}">Update</a>
-                <a href="{% url 'delete-task' task.id %}">Delete</a>
-            </li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'create-task' %}">Create New Task</a>
+    <form method="POST">
+        {% csrf_token %}
+        <ul>
+            {% for task in tasks %}
+                <li>
+                    <label>
+                        <input type="checkbox" name="task_ids" value="{{ task.id }}">
+                        {{ task.title }} -
+                        {% if task.completed %}
+                            <span>completed</span>
+                        {% else %}
+                            <span>uncompleted</span>
+                        {% endif %}
+                    </label>
+                    <!-- Edit 버튼 -->
+                    <a href="{% url 'edit-task' task.id %}">
+                        <button type="button">Edit</button>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <!-- Toggle Status 버튼 -->
+        <button type="submit" formaction="{% url 'toggle-tasks-status' %}">Toggle Status</button>
+        <!-- Delete Selected 버튼 -->
+        <button type="submit" formaction="{% url 'delete-selected' %}">Delete Selected</button>
+    </form>
+    <!-- Create 버튼 -->
+    <a href="{% url 'create-task' %}">
+        <button type="button">Create New Task</button>
+    </a>
 </body>
 </html>
