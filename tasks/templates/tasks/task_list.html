@@ -5,6 +5,7 @@
 </head>
 <body>
     <h1>ToDo List</h1>
+<<<<<<< HEAD
     <ul>
         {% for task in tasks %}
             <li>
@@ -19,6 +20,28 @@
             </li>
         {% endfor %}
     </ul>
+=======
+    <form method="POST" action="{% url 'task-list' %}">
+        {% csrf_token %}
+        <ul>
+            {% for task in tasks %}
+                <li>
+                    <label>
+                        <input type="checkbox" name="task_ids" value="{{ task.id }}">
+                        {{ task.title }} -
+                        {% if task.completed %}
+                            <span>completed</span>
+                        {% else %}
+                            <span>uncompleted</span>
+                        {% endif %}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="submit" formaction="{% url 'update-tasks' %}">Update Selected</button>
+        <button type="submit" formaction="{% url 'delete-tasks' %}">Delete Selected</button>
+    </form>
+>>>>>>> feature/delete
     <a href="{% url 'create-task' %}">Create New Task</a>
 </body>
 </html>
