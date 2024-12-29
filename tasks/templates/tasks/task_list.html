@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ToDo List</title>
+</head>
+<body>
+    <h1>ToDo List</h1>
+    <ul>
+        {% for task in tasks %}
+            <li>
+                {{ task.title }} -
+                {% if task.completed %}
+                    <span>완료</span>
+                {% else %}
+                    <span>미완료</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'create-task' %}">Create New Task</a>
+</body>
+</html>
