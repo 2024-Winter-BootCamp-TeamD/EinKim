@@ -6,10 +6,17 @@
 <body>
     <h1>ToDo List</h1>
     <ul>
-        <li>Git Organization에 Repository 파기</li>
-        <li>ToDoList CRUD API 구현</li>
-        <li>할 일 생성, 할 일 삭제, 일 조회, 수정</li>
-        <li>파이썬 및 장고 공부</li>
+        {% for task in tasks %}
+            <li>
+                {{ task.title }} -
+                {% if task.completed %}
+                    <span>완료</span>
+                {% else %}
+                    <span>미완료</span>
+                {% endif %}
+            </li>
+        {% endfor %}
     </ul>
+    <a href="{% url 'create-task' %}">Create New Task</a>
 </body>
 </html>
