@@ -21,11 +21,12 @@ def update_task(request, pk):
     if request.method == 'POST':
         form = TaskForm(request.POST, instance=task)
         if form.is_valid():
-            form.save()
+            task.completed = 'completed' in request.POST
+            task.save()
             return redirect('task-list')
     else:
         form = TaskForm(instance=task)
-    return render(request, 'tasks/update_task.html', {'form': form})
+    return render(request, 'tasks/update_task.html', {'form': form, 'task': task})
 
 def delete_task(request, pk):
     task = get_object_or_404(Task, id=pk)
