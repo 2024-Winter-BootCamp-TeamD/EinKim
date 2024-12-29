@@ -8,8 +8,8 @@
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Save Changes</button>
+        <button type="submit">Update</button>
     </form>
-    <a href="{% url 'task-list' %}">Cancel</a>
+    <a href="{% url 'task-list' %}">Back to Task List</a>
 </body>
 </html>
