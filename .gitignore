@@ -12,3 +12,9 @@ venv/
 db.sqlite3
 /media
 /staticfiles
+
+# Ignore settings.py
+settings.py
+
+# Ignore .env file
+.env
