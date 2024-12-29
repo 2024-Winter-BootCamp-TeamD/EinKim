@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
+import os
+import rest_framework
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,13 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-k-of33&&^3!w+zq)3)7^co3&-&+gdcc@li&s8qa)sos$%_5)ft'
+SECRET_KEY = config('SECRET_KEY', default='your_default_secret_key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost').split(',')
 
 # Application definition
 
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tasks',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +58,10 @@ ROOT_URLCONF = 'todolist.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'tasks/templates']
+        'DIRS': [
+            BASE_DIR / 'tasks/templates',
+            os.path.join(os.path.dirname(rest_framework.__file__), 'templates'),
+        ]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -101,6 +107,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#Renderer
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
