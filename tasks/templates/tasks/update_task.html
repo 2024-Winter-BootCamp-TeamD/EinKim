@@ -1,18 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Update Task</title>
+    <title>Edit Task</title>
 </head>
 <body>
-    <h1>Update Task</h1>
+    <h1>Edit Task</h1>
     <form method="POST">
         {% csrf_token %}
         {{ form.title.label_tag }}
         {{ form.title }}
-
-        <label>
-            <input type="checkbox" name="completed" {% if task.completed %}checked{% endif %}> Completed
-        </label>
 
         <button type="submit">Save Changes</button>
     </form>

@@ -5,7 +5,7 @@
 </head>
 <body>
     <h1>ToDo List</h1>
-    <form method="POST" action="{% url 'task-list' %}">
+    <form method="POST">
         {% csrf_token %}
         <ul>
             {% for task in tasks %}
@@ -19,15 +19,21 @@
                             <span>uncompleted</span>
                         {% endif %}
                     </label>
-                    <!-- 개별 Update/Delete 링크 추가 -->
-                    <a href="{% url 'update-task' task.id %}">Update</a>
-                    <a href="{% url 'delete-task' task.id %}">Delete</a>
+                    <!-- Edit 버튼 -->
+                    <a href="{% url 'edit-task' task.id %}">
+                        <button type="button">Edit</button>
+                    </a>
                 </li>
             {% endfor %}
         </ul>
-        <button type="submit" formaction="{% url 'update-tasks' %}">Update Selected</button>
-        <button type="submit" formaction="{% url 'delete-tasks' %}">Delete Selected</button>
+        <!-- Toggle Status 버튼 -->
+        <button type="submit" formaction="{% url 'toggle-tasks-status' %}">Toggle Status</button>
+        <!-- Delete Selected 버튼 -->
+        <button type="submit" formaction="{% url 'delete-selected' %}">Delete Selected</button>
     </form>
-    <a href="{% url 'create-task' %}">Create New Task</a>
+    <!-- Create 버튼 -->
+    <a href="{% url 'create-task' %}">
+        <button type="button">Create New Task</button>
+    </a>
 </body>
 </html>
