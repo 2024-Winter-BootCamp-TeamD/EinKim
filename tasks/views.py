@@ -1,112 +1,92 @@
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Task
+from .forms import TaskForm
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import Task
-from .forms import TaskForm
 from .serializers import TaskSerializer
 
-
-# Task 목록 조회
 class TaskListView(APIView):
-    @swagger_auto_schema(
-        operation_description="Retrieve a list of all tasks",
-        responses={200: openapi.Response(
-            description="A list of tasks",
-            schema=openapi.Schema(
-                type=openapi.TYPE_ARRAY,
-                items=openapi.Items(type=openapi.TYPE_OBJECT)
-            )
-        )}
-    )
     def get(self, request):
         tasks = Task.objects.all()
         serializer = TaskSerializer(tasks, many=True)
-        return render(request, 'tasks/task_list.html', {'tasks': tasks})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def post(self, request):
+        serializer = TaskSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TaskDetailView(APIView):
+    @swagger_auto_schema(
+        operation_description="Retrieve a specific task",
+        responses={
+            200: TaskSerializer,
+            404: "Task not found"
+        }
+    )
+    def get(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        serializer = TaskSerializer(task)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Update a specific task",
+        request_body=TaskSerializer,
+        responses={200: TaskSerializer, 400: "Bad Request", 404: "Task not found"}
+    )
+    def put(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        serializer = TaskSerializer(task, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Delete a specific task",
+        responses={204: "Task deleted", 404: "Task not found"}
+    )
+    def delete(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        task.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+# Task 목록 조회
+def task_list(request):
+    tasks = Task.objects.all()
+    return render(request, 'tasks/task_list.html', {'tasks': tasks})
 
 # Task 생성
-class CreateTaskView(APIView):
-    @swagger_auto_schema(
-        operation_description="Render the task creation form",
-        responses={200: "Task creation form rendered"}
-    )
-    def get(self, request):
-        """Render the task creation form."""
-        form = TaskForm()
-        return render(request, 'tasks/create_task.html', {'form': form})
-
-    @swagger_auto_schema(
-        operation_description="Create a new task",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'title': openapi.Schema(type=openapi.TYPE_STRING, description='Title of the task')
-            },
-            required=['title']
-        ),
-        responses={302: "Redirect to task list after successful creation"}
-    )
-    def post(self, request):
-        """Handle task creation."""
+def create_task(request):
+    if request.method == 'POST':
         form = TaskForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('task-list')
-        return render(request, 'tasks/create_task.html', {'form': form})
+    else:
+        form = TaskForm()
+    return render(request, 'tasks/create_task.html', {'form': form})
 
 # 개별 Task 편집 (Edit)
-class EditTaskView(APIView):
-    @swagger_auto_schema(
-        operation_description="Render the task edit form",
-        responses={200: "Task edit form rendered"}
-    )
-    def get(self, request, pk):
-        """Render the task edit form with existing data."""
-        task = get_object_or_404(Task, id=pk)
-        form = TaskForm(instance=task)
-        return render(request, 'tasks/update_task.html', {'form': form, 'task': task})
-
-    @swagger_auto_schema(
-        operation_description="Edit an existing task",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'title': openapi.Schema(type=openapi.TYPE_STRING, description='Updated title of the task')
-            },
-            required=['title']
-        ),
-        responses={302: "Redirect to task list after successful edit"}
-    )
-    def post(self, request, pk):
-        """Handle task editing."""
-        task = get_object_or_404(Task, id=pk)
+def edit_task(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    if request.method == 'POST':
         form = TaskForm(request.POST, instance=task)
         if form.is_valid():
             form.save()
             return redirect('task-list')
-        return render(request, 'tasks/update_task.html', {'form': form, 'task': task})
+    else:
+        form = TaskForm(instance=task)
+    return render(request, 'tasks/update_task.html', {'form': form, 'task': task})
 
 # 다중 Task 상태 토글 (Toggle Status)
-class ToggleTasksStatusView(APIView):
-    @swagger_auto_schema(
-        operation_description="Toggle the completed status of selected tasks",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'task_ids': openapi.Schema(
-                    type=openapi.TYPE_ARRAY,
-                    items=openapi.Items(type=openapi.TYPE_INTEGER),
-                    description="List of task IDs to toggle status"
-                )
-            },
-            required=['task_ids']
-        ),
-        responses={302: "Redirect to task list after status toggling"}
-    )
-    def post(self, request):
+def toggle_tasks_status(request):
+    if request.method == 'POST':
         task_ids = request.POST.getlist('task_ids')
         tasks = Task.objects.filter(id__in=task_ids)
         for task in tasks:
@@ -114,48 +94,16 @@ class ToggleTasksStatusView(APIView):
             task.save()
         return redirect('task-list')
 
-
 # 다중 Task 삭제 확인 페이지 렌더링
-class DeleteSelectedView(APIView):
-    @swagger_auto_schema(
-        operation_description="Render a confirmation page for deleting selected tasks",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'task_ids': openapi.Schema(
-                    type=openapi.TYPE_ARRAY,
-                    items=openapi.Items(type=openapi.TYPE_INTEGER),
-                    description="List of task IDs to delete"
-                )
-            },
-            required=['task_ids']
-        ),
-        responses={200: "Rendered confirmation page with selected tasks"}
-    )
-    def post(self, request):
+def delete_selected(request):
+    if request.method == 'POST':
         task_ids = request.POST.getlist('task_ids')
         tasks = Task.objects.filter(id__in=task_ids)
         return render(request, 'tasks/delete_tasks.html', {'tasks': tasks})
 
-
 # 다중 Task 삭제 처리
-class ConfirmDeleteView(APIView):
-    @swagger_auto_schema(
-        operation_description="Delete selected tasks",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'task_ids': openapi.Schema(
-                    type=openapi.TYPE_ARRAY,
-                    items=openapi.Items(type=openapi.TYPE_INTEGER),
-                    description="List of task IDs to delete"
-                )
-            },
-            required=['task_ids']
-        ),
-        responses={302: "Redirect to task list after successful deletion"}
-    )
-    def post(self, request):
+def confirm_delete(request):
+    if request.method == 'POST':
         task_ids = request.POST.getlist('task_ids')
         Task.objects.filter(id__in=task_ids).delete()
         return redirect('task-list')
